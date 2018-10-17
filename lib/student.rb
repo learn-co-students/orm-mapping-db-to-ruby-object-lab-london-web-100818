@@ -1,19 +1,81 @@
 class Student
   attr_accessor :id, :name, :grade
-
+  
   def self.new_from_db(row)
+    new_student = Student.new
+    new_student.id = row[0]
+    new_student.name = row[1]
+    new_student.grade = row[2]
+    new_student
     # create a new Student object given a row from the database
   end
 
   def self.all
+    sql = <<-SQL
+      SELECT * from students
+      SQL
+
+    DB[:conn].execute(sql).map {|row| Student.new_from_db(row)}
+
     # retrieve all the rows from the "Students" database
     # remember each row should be a new instance of the Student class
   end
 
+
+
   def self.find_by_name(name)
+
+    sql = <<-SQL
+      SELECT * FROM students WHERE ? = students.name LIMIT 1
+    SQL
+
+    Student.new_from_db(DB[:conn].execute(sql, name)[0])
+
+
     # find the student in the database given a name
     # return a new instance of the Student class
   end
+
+  def self.all_students_in_grade_9
+    sql = <<-SQL
+    SELECT * from students WHERE students.grade = 9
+    SQL
+
+    DB[:conn].execute(sql).map {|row| Student.new_from_db(row)}
+  end
+
+  def self.students_below_12th_grade
+    sql = <<-SQL
+    SELECT * from students WHERE students.grade < 12
+    SQL
+
+    DB[:conn].execute(sql).map {|row| Student.new_from_db(row)}
+  end
+
+  def self.first_X_students_in_grade_10(x)
+    sql = <<-SQL
+    SELECT * from students WHERE students.grade = 10 LIMIT ?
+    SQL
+
+    DB[:conn].execute(sql, x).map {|row| Student.new_from_db(row)}
+  end
+
+  def self.first_student_in_grade_10
+    sql = <<-SQL
+    SELECT * from students WHERE students.grade = 10
+    SQL
+
+    DB[:conn].execute(sql).map {|row| Student.new_from_db(row)}[0]
+  end
+
+  def self.all_students_in_grade_X(x)
+    sql = <<-SQL
+    SELECT * from students WHERE students.grade = ?
+    SQL
+
+    DB[:conn].execute(sql, x).map {|row| Student.new_from_db(row)}
+  end
+
   
   def save
     sql = <<-SQL
